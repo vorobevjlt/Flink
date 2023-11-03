@@ -1,41 +1,35 @@
 package scala
 
-import org.apache.flink.api.common.state.StateTtlConfig
-import scala.collection.immutable.ListMap
-import org.apache.flink.api.common.functions.ReduceFunction
-import org.apache.flink.api.common.state.{ReducingStateDescriptor, ValueStateDescriptor}
-import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
-import org.apache.flink.streaming.api.windowing.triggers.{Trigger, CountTrigger, ProcessingTimeTrigger, TriggerResult,  PurgingTrigger}
-import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
-import org.apache.flink.streaming.api.windowing.windows.GlobalWindow
-import scala.math.abs
 import generator.Generator.{Event, EventGenerator}
-import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
-import org.apache.flink.streaming.api.functions.windowing.{ProcessAllWindowFunction, ProcessWindowFunction}
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction
-import org.apache.flink.streaming.api.windowing.assigners.{TumblingProcessingTimeWindows, EventTimeSessionWindows, SlidingEventTimeWindows, TumblingEventTimeWindows, GlobalWindows}
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.windows.TimeWindow
-import org.apache.flink.util.{Collector, OutputTag}
+
 import java.lang
+import scala.math.abs
 import java.time.Instant
 import scala.jdk.CollectionConverters._
-import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
-import org.apache.flink.api.common.functions.JoinFunction
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction
-import org.apache.flink.api.java.functions.KeySelector
-import org.apache.flink.api.common.functions.ReduceFunction
-import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
+import scala.collection.immutable.ListMap
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.datastream.{DataStreamSource, SingleOutputStreamOperator}
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.functions.{KeyedProcessFunction, ProcessFunction}
-import org.apache.flink.streaming.api.functions.source.SourceFunction
-import scala.jdk.CollectionConverters.IterableHasAsScala
-import org.apache.flink.api.common.state.{ListState, ListStateDescriptor, MapState, MapStateDescriptor}
+import org.apache.flink.util.{Collector, OutputTag}
+import org.apache.flink.api.java.functions.KeySelector
 import scala.jdk.CollectionConverters.IterableHasAsScala
 
+import org.apache.flink.api.common.functions.{ReduceFunction, JoinFunction}
+import org.apache.flink.api.common.eventtime.{SerializableTimestampAssigner, WatermarkStrategy}
+import org.apache.flink.api.common.state.{MapState, ReducingStateDescriptor, ValueStateDescriptor, ListStateDescriptor, MapStateDescriptor, StateTtlConfig}
+
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.windows.{TimeWindow, GlobalWindow}
+import org.apache.flink.streaming.api.windowing.triggers.Trigger.TriggerContext
+import org.apache.flink.streaming.api.windowing.triggers.{Trigger, CountTrigger, ProcessingTimeTrigger, TriggerResult,  PurgingTrigger}
+import org.apache.flink.streaming.api.windowing.assigners.{TumblingProcessingTimeWindows, EventTimeSessionWindows, SlidingEventTimeWindows, TumblingEventTimeWindows, GlobalWindows}
+
+import org.apache.flink.streaming.api.functions.source.SourceFunction
+import org.apache.flink.streaming.api.functions.co.ProcessJoinFunction
+import org.apache.flink.streaming.api.functions.{KeyedProcessFunction, ProcessFunction}
+import org.apache.flink.streaming.api.functions.windowing.{ProcessAllWindowFunction, ProcessWindowFunction, AllWindowFunction, WindowFunction}
+
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
+import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
+import org.apache.flink.streaming.api.datastream.{DataStreamSource, SingleOutputStreamOperator}
 
 object exmapleApp {
 
@@ -61,12 +55,6 @@ object exmapleApp {
 
           override def open(parameters: Configuration): Unit = {
 
-              // val ttlConfig = StateTtlConfig
-              //       .newBuilder(Time.seconds(1))
-              //       .setUpdateType(StateTtlConfig.UpdateType.OnCreateAndWrite)
-              //       .build        
-
-
               appleState = getRuntimeContext.getMapState(
                 new MapStateDescriptor[String, Long](
                   "appleState",classOf[String], classOf[Long])
@@ -89,14 +77,6 @@ object exmapleApp {
                   "huaweiState",
                   classOf[String], classOf[Long])
               )
-
-            // appleState.enableTimeToLive(ttlConfig)
-
-            // googleState.enableTimeToLive(ttlConfig)
-
-            // ruState.enableTimeToLive(ttlConfig)                  
-
-            // huaweiState.enableTimeToLive(ttlConfig)       
             }
 
           override def process(
