@@ -91,8 +91,6 @@ object CountAppStoreMetric {
                 val storeKey = elements.asScala.map(_.storeName).max
                 // получаем данные приложении, с которыми происходили событи
                 val recList = elements.asScala.map(rec => (rec.appID, rec.EventTypeName)).toList
-                
-                // получим по какому приложению было удалине либо установка 
                 val metricName = recList.map(rec => {rec._1 + rec._2})
                 // считаем удаление и установку по каждому приложению
                 val countMetrics = metricName.foldLeft(Map.empty[String, Int]) { (m, x) => m + ((x, m.getOrElse(x, 0) + 1)) }
