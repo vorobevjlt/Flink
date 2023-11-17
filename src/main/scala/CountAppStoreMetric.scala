@@ -47,7 +47,7 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.datastream.{DataStreamSource, SingleOutputStreamOperator}
 
-object C {
+object CountAppStoreMetric {
 
   def appStoreStream(): Unit = {
 
