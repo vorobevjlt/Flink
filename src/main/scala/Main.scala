@@ -89,12 +89,11 @@ object Main {
             out: Collector[String]): Unit = {
                 // получаем название магазина, по которому будут обновлятся метрики
                 val storeKey = elements.asScala.map(_.storeName).max
-                // получаем данные приложении, с которыми происходили события
-                val appID = elements.asScala.map(_.appID).toList
-                val eventType = elements.asScala.map(_.EventTypeName).toList
-                val length = eventType.size
+                // получаем данные приложении, с которыми происходили событи
+                val recList = elements.asScala.map(rec => (rec.appID, rec.EventTypeName)).toList
+                
                 // получим по какому приложению было удалине либо установка 
-                val metricName = Range(0, length).map(n => {appID(n) + eventType(n)})
+                val metricName = recList.map(rec => {rec._1 + rec._2})
                 // считаем удаление и установку по каждому приложению
                 val countMetrics = metricName.foldLeft(Map.empty[String, Int]) { (m, x) => m + ((x, m.getOrElse(x, 0) + 1)) }
                 // добавляем посчитанные значения в состояние
@@ -102,6 +101,7 @@ object Main {
                 // получим метрики хранящиеся в состоянии
                 val getKeys = (storeState.keys().toString)
                 val mericNames = getKeys.filterNot(c => c  == '[' || c == ']' || c == ' ').split(",").toList
+                
                 // сортируем метрики хранящиеся в состоянии
                 val getMetricFromState = mericNames.map(rec => {
                   val value = storeState.get(rec)
