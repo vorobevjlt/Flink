@@ -113,32 +113,18 @@ object Main {
           }
       }
 
-      class MetricByTime extends ProcessAllWindowFunction[Event, String, TimeWindow] {
-
-          def getErrorsType(
-            name: String,
-            elements: lang.Iterable[Event]): Long = {
-              elements.asScala
-              .filter(rec => {
-                rec.storeName == name 
-              })
-              .size}
+      class MetricByTime extends ProcessWindowFunction[Event, String, String, TimeWindow] {
 
           override def process(
-            context: ProcessAllWindowFunction[Event, String, TimeWindow]#Context,
+            key: String,
+            context: ProcessWindowFunction[Event, String, String, TimeWindow]#Context,
             elements: lang.Iterable[Event],
             out: Collector[String]): Unit = {
 
-            // считаем события со значением "error" по каждому магазину
-            val appleErrors = getErrorsType("AppleAppStore", elements)
-            val googleErrors = getErrorsType("GooglePlay", elements)
-            val ruErrors = getErrorsType("RuStore", elements)
-            val huaweiErrors = getErrorsType("HuaweiAppStore", elements)  
+            val storeKey = elements.asScala.map(_.storeName).toList
+            val countMetrics = storeKey.foldLeft(Map.empty[String, Int]) {(m, x) => m + ((x, m.getOrElse(x, 0) + 1))}
 
-            out.collect(s"\nAppleStoreErros: ${appleErrors} \n" +
-            s"GoogleStoreErrors: ${googleErrors} \n" +
-            s"RuStoreErrors: ${ruErrors} \n" +
-            s"HuaweiStoreErrors: ${huaweiErrors}")
+            out.collect(s"${countMetrics}")
           }
       }
 
