@@ -47,6 +47,27 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.apache.flink.streaming.api.datastream.CoGroupedStreams.TaggedUnion
 import org.apache.flink.streaming.api.datastream.{DataStreamSource, SingleOutputStreamOperator}
 
+  /*
+Задача состоит в том, чтобы обрабатывать события Event, 
+связанные с магазинами приложений. 
+Каждое событие обязательно содержит следующую информацию:
+
+    store - магазин мобильных приложений: HuaweiAppStore, AppleAppStore, GooglePlay или RuStore
+    appId - id мобильного приложения
+    eventType - тип события: page_view, install, uninstall или error
+    eventTime - время наступления события
+
+Эту информацию следует использовать для того, 
+чтобы для каждого магазина приложений store находить топ-3 
+наиболее часто устанавливаемых (install) 
+и наиболее часто удаляемых (uninstall) приложений за все время. 
+При этом получение обновленной статистики должно происходить каждый раз, 
+как только произошло 50 удалений или 100 скачиваний приложений.
+
+При этом, каждые 10 секунд мы должны для каждого магазина получать статистику о том, 
+сколько за эти 10 секунд произошло ошибок (в eventType указано error).
+ */
+
 object CountAppStoreMetric {
 
   def appStoreStream(): Unit = {
