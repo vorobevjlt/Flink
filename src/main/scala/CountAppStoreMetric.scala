@@ -68,7 +68,7 @@ import org.apache.flink.streaming.api.datastream.{DataStreamSource, SingleOutput
 сколько за эти 10 секунд произошло ошибок (в eventType указано error).
  */
 
-object CountAppStoreMetric {
+object Main {
 
   def appStoreStream(): Unit = {
 
@@ -110,9 +110,12 @@ object CountAppStoreMetric {
             out: Collector[String]): Unit = {
                 // получаем название магазина, по которому будут обновлятся метрики
                 val storeKey = elements.asScala.map(_.storeName).max
-                // получаем данные приложении, с которыми происходили событи
-                val recList = elements.asScala.map(rec => (rec.appID, rec.EventTypeName)).toList
-                val metricName = recList.map(rec => {rec._1 + rec._2})
+                // получаем данные приложении, с которыми происходили события
+                val appID = elements.asScala.map(_.appID).toList
+                val eventType = elements.asScala.map(_.EventTypeName).toList
+                val length = eventType.size
+                // получим по какому приложению было удалине либо установка 
+                val metricName = Range(0, length).map(n => {appID(n) + eventType(n)})
                 // считаем удаление и установку по каждому приложению
                 val countMetrics = metricName.foldLeft(Map.empty[String, Int]) { (m, x) => m + ((x, m.getOrElse(x, 0) + 1)) }
                 // добавляем посчитанные значения в состояние
@@ -120,7 +123,6 @@ object CountAppStoreMetric {
                 // получим метрики хранящиеся в состоянии
                 val getKeys = (storeState.keys().toString)
                 val mericNames = getKeys.filterNot(c => c  == '[' || c == ']' || c == ' ').split(",").toList
-                
                 // сортируем метрики хранящиеся в состоянии
                 val getMetricFromState = mericNames.map(rec => {
                   val value = storeState.get(rec)
@@ -139,11 +141,9 @@ object CountAppStoreMetric {
             context: ProcessWindowFunction[Event, String, String, TimeWindow]#Context,
             elements: lang.Iterable[Event],
             out: Collector[String]): Unit = {
-
-            val storeKey = elements.asScala.map(_.storeName).toList
-            val countMetrics = storeKey.foldLeft(Map.empty[String, Int]) {(m, x) => m + ((x, m.getOrElse(x, 0) + 1))}
-
-            out.collect(s"${countMetrics}")
+            
+            val key: Iterable[String] = elements.asScala.map(_.storeName)
+            out.collect(s"${key.max} errors: ${elements.asScala.size}")
           }
       }
 
@@ -246,9 +246,9 @@ object CountAppStoreMetric {
         listenEventStream
         .getSideOutput(outputTag)
         .keyBy(new KeySelector[Event, String] {
-          override def getKey(value: Event): String = value.id
+          override def getKey(value: Event): String = value.storeName
         })
-        .windowAll(TumblingProcessingTimeWindows.of(Time.seconds(10)))
+        .window(TumblingProcessingTimeWindows.of(Time.seconds(10)))
         .process(new MetricByTime)
 
 
