@@ -108,8 +108,7 @@ object Main {
             context: ProcessWindowFunction[Event, String, String, GlobalWindow]#Context,
             elements: lang.Iterable[Event],
             out: Collector[String]): Unit = {
-                // получаем название магазина, по которому будут обновлятся метрики
-                val storeKey = elements.asScala.map(_.storeName).max
+
                 // получаем данные приложении, с которыми происходили события
                 val appID = elements.asScala.map(_.appID).toList
                 val eventType = elements.asScala.map(_.EventTypeName).toList
@@ -129,21 +128,29 @@ object Main {
                   (rec, value)
                 }).sortWith(_._2 > _._2)
                 
-                out.collect(s"${storeKey} \n" +
+                out.collect(s"${key} \n" +
                   s"${getMetricFromState.take(3)}")
           }
       }
 
       class MetricByTime extends ProcessWindowFunction[Event, String, String, TimeWindow] {
 
+          def getErrorsType(
+            name: String,
+            elements: lang.Iterable[Event]): Long = {
+              elements.asScala
+              .filter(rec => {
+                rec.storeName == name 
+              })
+              .size}
+
           override def process(
             key: String,
-            context: ProcessWindowFunction[Event, String, String, TimeWindow]#Context,
+            context: ProcessWindowFunction[Event,String, String, TimeWindow]#Context,
             elements: lang.Iterable[Event],
             out: Collector[String]): Unit = {
-            
-            val key: Iterable[String] = elements.asScala.map(_.storeName)
-            out.collect(s"${key.max} errors: ${elements.asScala.size}")
+
+            out.collect(s"$key ${elements.asScala.size}")
           }
       }
 
@@ -171,8 +178,8 @@ object Main {
                 elementTypeState.put(elementType, currentCount)}
             else elementTypeState.put(elementType, 1)
             // задаем условия для триггера
-            val hasUninstallCount = (elementTypeState.get(elementType) == 50)          
-            val hasInstallCount = (elementTypeState.get(elementType) == 100)                 
+            val hasUninstallCount = (elementTypeState.get(elementType) == 3)          
+            val hasInstallCount = (elementTypeState.get(elementType) == 5)                 
             val hasReasonToFireTrigger = (elementType == "install" && hasInstallCount || 
                   elementType == "uninstall" && hasUninstallCount)
             //определяем поведение триггера в зависимости от состояния условия
