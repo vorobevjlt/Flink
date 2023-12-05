@@ -178,8 +178,8 @@ object Main {
                 elementTypeState.put(elementType, currentCount)}
             else elementTypeState.put(elementType, 1)
             // задаем условия для триггера
-            val hasUninstallCount = (elementTypeState.get(elementType) == 3)          
-            val hasInstallCount = (elementTypeState.get(elementType) == 5)                 
+            val hasUninstallCount = (elementTypeState.get(elementType) == 50)          
+            val hasInstallCount = (elementTypeState.get(elementType) == 100)                 
             val hasReasonToFireTrigger = (elementType == "install" && hasInstallCount || 
                   elementType == "uninstall" && hasUninstallCount)
             //определяем поведение триггера в зависимости от состояния условия
