@@ -1,26 +1,21 @@
-package generator
-
-import generator._
 import scala.math.abs
-import org.apache.flink.streaming.api.functions.windowing.AllWindowFunction
-import org.apache.flink.streaming.api.functions.windowing.WindowFunction
 import org.apache.flink.streaming.api.functions.source.SourceFunction
 import org.apache.flink.streaming.api.functions.source
 import org.apache.flink.streaming.api.windowing.time.Time
 
-object Generator {
+package object generator {
 
   case class Event(
-    id: String,
-    storeName: String,
-    appID: String,
-    EventTypeName: String,
-    time: java.time.Instant)
+                    id: String,
+                    storeName: String,
+                    appID: String,
+                    EventTypeName: String,
+                    time: java.time.Instant)
 
   class EventGenerator(
-      batchSize: Int,
-      baseTime: java.time.Instant,
-      millisBtwEvents: Int)
+                        batchSize: Int,
+                        baseTime: java.time.Instant,
+                        millisBtwEvents: Int)
     extends SourceFunction[Event] {
 
     @volatile private var isRunning = true
@@ -31,7 +26,7 @@ object Generator {
       val events = (1 to batchSize)
         .map(_ => {
           val eventTime = abs(id - scala.util.Random.between(0L, 4L))
-        
+
           Event(
             EventGenerator.getId,
             EventGenerator.getStore,
@@ -46,11 +41,11 @@ object Generator {
 
 
     private def run(
-        startId: Long,
-        ctx: SourceFunction.SourceContext[Event])
-      : Unit = {
+                     startId: Long,
+                     ctx: SourceFunction.SourceContext[Event])
+    : Unit = {
 
-        countValue += 1
+      countValue += 1
 
       if (countValue < 50) {
         generateEvent(startId).foreach(ctx.collect)
@@ -79,9 +74,9 @@ object Generator {
 
 
     private val appId: Vector[String] = Vector(
-      "2616001479570096825", 
-      "4091758100234781984", 
-      "9102759165103862720", 
+      "2616001479570096825",
+      "4091758100234781984",
+      "9102759165103862720",
       "1045619379553910805")
 
     private val eventType: Vector[String] = Vector(
@@ -98,7 +93,7 @@ object Generator {
     def getAppId: String = appId(scala.util.Random.nextInt(appId.length))
 
     def getEventType: String = eventType(scala.util.Random.nextInt(eventType.length))
-    
+
   }
 
 }
